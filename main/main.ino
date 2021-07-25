@@ -2,14 +2,24 @@
 #include "eeprom.h"
 #include "wifi.h"
 #include "ota.h"
+#include "recovery.h"
+#include "utli.h"
 
 void setup(void)
 {
-    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(GPIO_PIN, OUTPUT);
+    led_blink_slow(LED_BUILTIN);
     Serial.begin(115200);
     EEPROM.begin(EEPROM_SIZE);
 
+    recovery_init();
+
     int wifi_stat = wifi_init();
+    if (wifi_stat == WIFI_STAT_SETUP) {
+        led_blink_fast(LED_BUILTIN);
+    } else if (wifi_stat == WIFI_STAT_CONN) {
+        led_light(LED_BUILTIN);
+    }
     ota_setup();
     server_init();
 }

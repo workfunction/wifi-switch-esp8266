@@ -91,12 +91,14 @@ int wifi_init()
             break;
         }
         Serial.println("Connection failed, try again.");
+        ESP.wdtFeed();
     }
 
     if (ret != WL_CONNECTED) {
         Serial.println("Wifi connetcion failed, start setup AP");
         default_ap_setup();
-        return 1;
+        ESP.wdtFeed();
+        return WIFI_STAT_SETUP;
     }
 
     Serial.print("Connected to ");
@@ -104,5 +106,5 @@ int wifi_init()
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
 
-    return 0;
+    return WIFI_STAT_CONN;
 }

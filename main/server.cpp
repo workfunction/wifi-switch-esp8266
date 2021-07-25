@@ -28,6 +28,7 @@ void handleNotFound()
 
 void handle_index()
 {
+    Serial.println("Get index");
     content = "<!DOCTYPE HTML>\r\n<html>";
     content += "<p><form method='get' action='ledon'><label>LED ON </label><input type='submit'></form></p>";
     content += "<p><form method='get' action='ledoff'><label>LED OFF </label><input type='submit'></form></p>";
@@ -59,6 +60,8 @@ void handle_ssid()
 
     statusCode = 200;
     server.send(statusCode, "text/html", content);
+
+    ESP.restart();
 }
 
 void server_init()
@@ -70,13 +73,15 @@ void server_init()
     server.on("/", handle_index);
  
     server.on("/ledon", []() {
-        digitalWrite(LED_BUILTIN, HIGH);
+        Serial.println("Get LED_ON");
+        digitalWrite(GPIO_PIN, LOW);
         statusCode = 200;
         server.send(statusCode, "text/html", content);
     });
 
     server.on("/ledoff", []() {
-        digitalWrite(LED_BUILTIN, LOW);
+        Serial.println("Get LED_OFF");
+        digitalWrite(GPIO_PIN, HIGH);
         statusCode = 200;
         server.send(statusCode, "text/html", content);
     });
