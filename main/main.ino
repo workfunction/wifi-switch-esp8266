@@ -1,6 +1,6 @@
 #include "server.h"
 #include "eeprom.h"
-#include "wifi.h"
+#include "network.h"
 #include "ota.h"
 #include "recovery.h"
 #include "utli.h"

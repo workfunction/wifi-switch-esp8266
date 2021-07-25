@@ -1,7 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 
-#include "wifi.h"
+#include "network.h"
 #include "eeprom.h"
 
 #define STASSID "美味美"
