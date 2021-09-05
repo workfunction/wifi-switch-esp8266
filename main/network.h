@@ -13,4 +13,4 @@ enum wifi_status_t
  * 0: wifi connected.
  * 1: saved ssid connection failed, go for AP mode.
  */
-int wifi_init();
+int wifi_init(int mode);

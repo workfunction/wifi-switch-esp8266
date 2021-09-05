@@ -20,7 +20,7 @@ void led_blink_fast(int pin)
 {
     pinMode(pin,OUTPUT);
     g_pin = pin;
-    blinker.attach(0.2, changeState);
+    blinker.attach(0.1, changeState);
 }
 
 void led_light(int pin)

@@ -1,4 +1,7 @@
 #include "recovery.h"
+#include "eeprom.h"
+#include "network.h"
+#include "ota.h"
 
 struct bootflags
 {
@@ -42,19 +45,41 @@ struct bootflags bootmode_detect(void) {
     return flags;
 }
 
+void recovery_loop()
+{
+    /* Recovery wifi setup */
+    int wifi_stat = wifi_init(1);
+    ota_setup();
+
+    while(true) {
+        ESP.wdtFeed();
+        ota_loop();
+    }
+}
+
 void recovery_init()
 {
+    ESP.wdtFeed();
     struct bootflags flags = bootmode_detect();
 
     Serial.println("");
 
     if (flags.rst_normal_boot) {
         Serial.println("Normal booted.");
-    }
-    if (flags.rst_reset_pin) {
+        eeprom_write_byte(ADDR_BOOT, 0);
+    } else if (flags.rst_reset_pin) {
         Serial.println("Booted from reset.");
-    }
-    if (flags.rst_watchdog) {
+        eeprom_write_byte(ADDR_BOOT, 0);
+    }else if (flags.rst_watchdog) {
+        uint8_t wdt_reset_times = eeprom_read_byte(ADDR_BOOT);
         Serial.println("Recover from watchdog.");
+        Serial.println(wdt_reset_times);
+
+        if (wdt_reset_times < MAX_WDT_RESET_TIME) {
+            eeprom_write_byte(ADDR_BOOT, wdt_reset_times + 1);
+        } else {
+            Serial.println("Too many watchdog reset.");
+            recovery_loop();
+        }
     }
 }

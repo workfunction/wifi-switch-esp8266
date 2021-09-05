@@ -14,7 +14,7 @@ void setup(void)
 
     recovery_init();
 
-    int wifi_stat = wifi_init();
+    int wifi_stat = wifi_init(0);
     if (wifi_stat == WIFI_STAT_SETUP) {
         led_blink_fast(LED_BUILTIN);
     } else if (wifi_stat == WIFI_STAT_CONN) {
@@ -22,10 +22,12 @@ void setup(void)
     }
     ota_setup();
     server_init();
+    //while (1) {};
 }
 
 void loop(void)
 {
+    ESP.wdtFeed();
     ota_loop();
     server_loop();
 }

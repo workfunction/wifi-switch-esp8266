@@ -55,8 +55,8 @@ void handle_ssid()
     Serial.print("password: ");
     Serial.println(password);
 
-    writeStringToEEPROM(0, ssid);
-    writeStringToEEPROM(100, password);
+    eeprom_write_string(ADDR_SSID, ssid);
+    eeprom_write_string(ADDR_PASSWD, password);
 
     statusCode = 200;
     server.send(statusCode, "text/html", content);

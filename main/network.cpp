@@ -10,7 +10,7 @@
 #define APSSID "orthtech_"
 #define APPSK  "orthtech"
 
-#define RETRY_TIMES 3
+#define RETRY_TIMES 5
 
 char ssid[100];
 char password[100];
@@ -20,11 +20,8 @@ int default_connection()
 {
     WiFi.mode(WIFI_STA);
 
-    //writeStringToEEPROM(0, STASSID);
-    //writeStringToEEPROM(100, STAPSK);
-
-    strncpy(ssid, readStringFromEEPROM(0).c_str(), 100);
-    strncpy(password, readStringFromEEPROM(100).c_str(), 100);
+    strncpy(ssid, eeprom_read_string(ADDR_SSID).c_str(), 100);
+    strncpy(password, eeprom_read_string(ADDR_PASSWD).c_str(), 100);
 
     Serial.println("");
     Serial.println("Starting to connect wifi...");
@@ -44,6 +41,7 @@ int default_connection()
     while (WiFi.status() == WL_DISCONNECTED) {
         delay(500);
         Serial.print(".");
+        ESP.wdtFeed();
     }
 
     Serial.print("\n");
@@ -51,7 +49,7 @@ int default_connection()
     return WiFi.status();
 }
 
-void default_ap_setup()
+void default_ap_setup(int mode)
 {
     WiFi.mode(WIFI_AP);
 
@@ -69,6 +67,10 @@ void default_ap_setup()
     strncpy(password, APPSK, 100);
     strcat(ssid, ssid_postfix);
 
+    if (mode == 1) {
+        strcat(ssid, "_recovery");
+    }
+
     WiFi.softAP(ssid, password);
 
     IPAddress myIP = WiFi.softAPIP();
@@ -82,8 +84,15 @@ void default_ap_setup()
     Serial.println(myIP);
 }
 
-int wifi_init()
+int wifi_init(int mode)
 {
+    if (mode == 1) {
+        Serial.println("Recovery mode, start setup AP");
+        default_ap_setup(1);
+        ESP.wdtFeed();
+        return WIFI_STAT_SETUP;
+    }
+
     int ret = 0;
     for (int c = 0; c < RETRY_TIMES; c++) {
         ret = default_connection();
@@ -92,11 +101,12 @@ int wifi_init()
         }
         Serial.println("Connection failed, try again.");
         ESP.wdtFeed();
+        delay(1000);
     }
 
     if (ret != WL_CONNECTED) {
         Serial.println("Wifi connetcion failed, start setup AP");
-        default_ap_setup();
+        default_ap_setup(0);
         ESP.wdtFeed();
         return WIFI_STAT_SETUP;
     }
