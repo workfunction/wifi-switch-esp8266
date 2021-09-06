@@ -10,33 +10,50 @@ ESP8266WebServer server(80);
 int statusCode;
 String content;
 
-void handleNotFound()
-{
-    String message = "File Not Found\n\n";
-    message += "URI: ";
-    message += server.uri();
-    message += "\nMethod: ";
-    message += (server.method() == HTTP_GET) ? "GET" : "POST";
-    message += "\nArguments: ";
-    message += server.args();
-    message += "\n";
-    for (uint8_t i = 0; i < server.args(); i++) {
-        message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+String getContentType(String filename){
+    if(server.hasArg("download")) return "application/octet-stream";
+    else if(filename.endsWith(".html")) return "text/html";
+    else if(filename.endsWith(".css")) return "text/css";
+    else if(filename.endsWith(".js")) return "application/javascript";
+    else if(filename.endsWith(".png")) return "image/png";
+    else if(filename.endsWith(".gif")) return "image/gif";
+    else if(filename.endsWith(".jpg")) return "image/jpeg";
+    else if(filename.endsWith(".ico")) return "image/x-icon";
+    return "text/plain";
+}
+ 
+bool handleFileRead(String path){
+    Serial.println("handleFileRead: " + path); // 在序列埠顯示路徑
+    
+    if (path.endsWith("/")) {
+        path += "index.html";
     }
-    server.send(404, "text/plain", message);
+    
+    String contentType = getContentType(path);
+    
+    if (SPIFFS.exists(path)){
+        File file = SPIFFS.open(path, "r");
+        server.streamFile(file, contentType);
+        file.close();
+    
+        return true;
+    }
+    return false;
+}
+
+void handle_files()
+{
+    if (!handleFileRead(server.uri())) {
+        server.send(404, "text/plain", "FileNotFound");
+    }
 }
 
 void handle_index()
 {
     Serial.println("Get index");
-    content = "<!DOCTYPE HTML>\r\n<html>";
-    content += "<p><form method='get' action='ledon'><label>LED ON </label><input type='submit'></form></p>";
-    content += "<p><form method='get' action='ledoff'><label>LED OFF </label><input type='submit'></form></p>";
-    
-    content += "<p><form method='post' action='ssid'><label>SSID\t</label> <input type='text' name='ssid'> <br> <label>password\t</label> <input type='password' name='password'> <br> <input type='submit' value='update'></form></p>";
-
-    content += "</html>";
-    server.send(200, "text/html", content);
+    File file = SPIFFS.open("/index.html", "r");
+    server.streamFile(file, "text/html");
+    file.close();
 }
 
 void handle_ssid()
@@ -58,8 +75,7 @@ void handle_ssid()
     eeprom_write_string(ADDR_SSID, ssid);
     eeprom_write_string(ADDR_PASSWD, password);
 
-    statusCode = 200;
-    server.send(statusCode, "text/html", content);
+    handle_index();
 
     ESP.restart();
 }
@@ -69,26 +85,24 @@ void server_init()
     if (MDNS.begin("esp8266")) {
         Serial.println("MDNS responder started");
     }
-
-    server.on("/", handle_index);
  
     server.on("/ledon", []() {
         Serial.println("Get LED_ON");
         digitalWrite(GPIO_PIN, LOW);
-        statusCode = 200;
-        server.send(statusCode, "text/html", content);
+        
+        handle_index();
     });
 
     server.on("/ledoff", []() {
         Serial.println("Get LED_OFF");
         digitalWrite(GPIO_PIN, HIGH);
-        statusCode = 200;
-        server.send(statusCode, "text/html", content);
+        
+        handle_index();
     });
 
     server.on("/ssid", handle_ssid);
 
-    server.onNotFound(handleNotFound);
+    server.onNotFound(handle_files);
 
     server.begin();
 

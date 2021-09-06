@@ -11,6 +11,7 @@ void setup(void)
     led_blink_slow(LED_BUILTIN);
     Serial.begin(115200);
     EEPROM.begin(EEPROM_SIZE);
+    SPIFFS.begin(); 
 
     recovery_init();
 

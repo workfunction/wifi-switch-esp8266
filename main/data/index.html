@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Bootstrap CSS -->
+        <link href="/bootstrap.min.css" rel="stylesheet">
+        <link href="/index.css" rel="stylesheet">
+
+        <title>Hello, world!</title>
+    </head>
+    <body class="text-center">
+        <script src="/bootstrap.min.js"></script>
+
+        <div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
+            <form class="form-signin" method='post' action='ledon'>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">ON</button>
+            </form>
+
+            <form class="form-signin" method='post' action='ledoff'>
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">OFF</button>
+            </form>
+                
+            <form class="form-signin" method='post' action='ssid'>
+                <input type="email" id="inputEmail" class="form-control" placeholder="SSID" required autofocus>
+                <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Update</button>
+            </form>
+        </div>
+
+    </body>
+
+</html>
